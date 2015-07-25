@@ -115,8 +115,8 @@ class Game
     if player.total == 21 || dealer.total == 21
       if dealer.total == 21
         show_cards(dealer)
-        puts "You both have blackjacks, its' a push" if player.total == 21
-        puts "Dealer blackjack, you lost..." if player.total != 21
+        puts "\nYou both have blackjacks, its' a push" if player.total == 21
+        puts "\nDealer blackjack, you lost..." if player.total != 21
       else
         puts "\nBlackjack!! You win!"
       end
@@ -165,8 +165,12 @@ class Game
           break if gets.chomp == "s"
           @deck.deal(@player)
           @player.calculate_total
-          @player.adjust_ace_to_one if @player.total > 21
-          show_cards(@player)
+          if @player.total > 21
+            @player.adjust_ace_to_one
+            show_cards(@player)
+          else
+            show_cards(@player)
+          end
           break if @player.total > 21
         end
         if @player.total <= 21
@@ -174,9 +178,14 @@ class Game
           while @dealer.total < 17
             @deck.deal(@dealer)
             @dealer.calculate_total
-            @dealer.adjust_ace_to_one if @dealer.total > 21
-            show_cards(@dealer)
+            if @dealer.total > 21
+              @dealer.adjust_ace_to_one
+              show_cards(@dealer)
+            else
+              show_cards(@dealer)
+            end
           end
+          puts "\n\n#{@player.name}: #{@player.total} -- #{@dealer.name}: #{@dealer.total}"
           find_winner
         end
         @deck.add_cards_dealt_to_deck
