@@ -2,9 +2,7 @@ require 'pry'
 
 module Hand
   def adjust_ace_to_one
-    if ace== 0
-      puts "\n #{name} busted..."
-    elsif ace >= 1 #convert their ace value from 11 to 1 and lower their ace count
+    if ace >= 1 #convert their ace value from 11 to 1 and lower their ace count
       self.total += -10
       self.ace += -1
     end
@@ -167,11 +165,12 @@ class Game
           @player.calculate_total
           if @player.total > 21
             @player.adjust_ace_to_one
-            show_cards(@player)
-          else
-            show_cards(@player)
           end
-          break if @player.total > 21
+          show_cards(@player)
+          if @player.total > 21
+            puts "\n #{@player.name} busted..." if @player.total >21
+            break
+          end
         end
         if @player.total <= 21
           show_cards(@dealer)
@@ -180,9 +179,11 @@ class Game
             @dealer.calculate_total
             if @dealer.total > 21
               @dealer.adjust_ace_to_one
-              show_cards(@dealer)
-            else
-              show_cards(@dealer)
+            end
+            show_cards(@dealer)
+            if @dealer.total > 21
+              puts "\n #{@dealer.name} busted..." if @dealer.total >21
+              break
             end
           end
           puts "\n\n#{@player.name}: #{@player.total} -- #{@dealer.name}: #{@dealer.total}"
