@@ -1,5 +1,28 @@
 require 'pry'
 
+module Hand
+  def adjust_ace_to_one
+    if ace== 0
+      puts "\n #{name} busted..."
+    elsif ace >= 1 #convert their ace value from 11 to 1 and lower their ace count
+      self.total += -10
+      self.ace += -1
+    end
+  end
+
+  def calculate_total
+    card_rank = cards.last[0]
+    if card_rank == "A"
+      total <= 10 ? self.total += 11 : self.total += 1
+      self.ace += 1
+    elsif card_rank == "J" or card_rank == "Q" or card_rank == "K"
+      self.total += 10
+    else
+      self.total += card_rank.to_i
+    end
+  end
+end
+
 class Deck
   attr_accessor :card, :cards_dealt, :playable_deck
   SINGLE_DECK = %w(A 2 3 4 5 6 7 8 9 10 J Q K).product(%w(hearts diamonds clubs spades))
@@ -38,6 +61,9 @@ end
 
 class Player
   attr_accessor :cards, :total, :ace, :name
+
+  include Hand
+
   def initialize
     @name = get_name
     @cards = []
@@ -50,29 +76,13 @@ class Player
     gets.chomp
   end
 
-  def adjust_ace_to_one
-    if ace== 0
-      puts "\n #{name} busted..."
-    elsif ace >= 1 #convert their ace value from 11 to 1 and lower their ace count
-      self.total += -10
-      self.ace += -1
-    end
-  end
 
-  def calculate_total
-    card_rank = cards.last[0]
-    if card_rank == "A"
-      total <= 10 ? self.total += 11 : self.total += 1
-      self.ace += 1
-    elsif card_rank == "J" or card_rank == "Q" or card_rank == "K"
-      self.total += 10
-    else
-      self.total += card_rank.to_i
-    end
-  end
 end
 
-class Dealer < Player
+class Dealer
+  attr_accessor :cards, :total, :ace, :name
+  include Hand
+
   def initialize
     @name = "Dealer"
   end
