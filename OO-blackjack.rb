@@ -3,8 +3,8 @@ require 'pry'
 module Hand
   def adjust_ace_to_one
     if ace >= 1 #convert their ace value from 11 to 1 and lower their ace count
-      self.total += -10
-      self.ace += -1
+      self.total -= 10
+      self.ace -= 1
     end
   end
 
@@ -17,6 +17,9 @@ module Hand
       self.total += 10
     else
       self.total += card_rank.to_i
+    end
+    if total > 21
+      self.adjust_ace_to_one
     end
   end
 end
@@ -33,8 +36,8 @@ class Deck
   def num_decks
     puts "How many decks do you want to play with?"
     num_decks = gets.chomp
-    while num_decks.to_i.to_s != num_decks
-     puts "Please enter a number. How many decks do you want to play with?"
+    while num_decks.to_i <= 0
+     puts "\nPlease enter a number. How many decks do you want to play with?"
      num_decks = gets.chomp
     end
     num_decks.to_i
@@ -51,7 +54,9 @@ class Deck
   end
 
   def add_cards_dealt_to_deck
-    self.playable_deck.unshift(cards_dealt)
+    cards_dealt.each do |card|
+      playable_deck.unshift(card)
+    end
     self.cards_dealt = []
   end
 
@@ -70,7 +75,7 @@ class Player
   end
 
   def get_name
-    puts "Please enter your name"
+    puts "\nPlease enter your name"
     gets.chomp
   end
 
@@ -90,7 +95,11 @@ end
 #Main game flow
 
 class Game
+
   attr_accessor :player, :dealer
+
+  WAIT = 1
+
   def initialize
     system 'clear'
     @deck = Deck.new
@@ -134,6 +143,51 @@ class Game
     end
   end
 
+  def player_turn
+    loop do
+      puts "\n Press any key to hit or 's' to stay"
+      break if gets.chomp == "s"
+      @deck.deal(@player)
+      @player.calculate_total
+      show_cards(@player)
+      if @player.total > 21
+        puts "\n #{@player.name} busted..." if @player.total >21
+        break
+      end
+    end
+  end
+
+  def dealer_turn
+    show_cards(@dealer)
+    while @dealer.total < 17
+      sleep WAIT
+      @deck.deal(@dealer)
+      @dealer.calculate_total
+      show_cards(@dealer)
+      if @dealer.total > 21
+        puts "\n #{@dealer.name} busted..." if @dealer.total >21
+        break
+      end
+    end
+  end
+
+  def deal_first_two_cards
+    2.times do
+      @deck.deal(@player)
+      @player.calculate_total
+      sleep WAIT
+      show_cards(@player)
+      @deck.deal(@dealer)
+      sleep WAIT
+      @dealer.calculate_total
+      if @dealer.cards.length < 2
+        puts "\nComputer: \n  X (covered)"
+      else
+        puts "\nComputer: \n  X (covered)\n #{@dealer.cards[1]}"
+      end
+    end
+  end
+
   def continue?
     puts "Press any key to continue playing or enter quit to quit"
     gets.chomp != "quit"
@@ -145,52 +199,14 @@ class Game
       system 'clear'
       reset_counts(@player)
       reset_counts(@dealer)
-      2.times do
-        @deck.deal(@player)
-        @player.calculate_total
-        show_cards(@player)
-        @deck.deal(@dealer)
-        @dealer.calculate_total
-        if @dealer.cards.length < 2
-          puts "\nComputer: \n  X (covered)"
-        else
-          puts "\nComputer: \n  X (covered)\n #{@dealer.cards[1]}"
-        end
-      end
+      deal_first_two_cards
       unless blackjack
-        loop do
-          puts "\n Press any key to hit or 's' to stay"
-          break if gets.chomp == "s"
-          @deck.deal(@player)
-          @player.calculate_total
-          if @player.total > 21
-            @player.adjust_ace_to_one
-          end
-          show_cards(@player)
-          if @player.total > 21
-            puts "\n #{@player.name} busted..." if @player.total >21
-            break
-          end
-        end
-        if @player.total <= 21
-          show_cards(@dealer)
-          while @dealer.total < 17
-            @deck.deal(@dealer)
-            @dealer.calculate_total
-            if @dealer.total > 21
-              @dealer.adjust_ace_to_one
-            end
-            show_cards(@dealer)
-            if @dealer.total > 21
-              puts "\n #{@dealer.name} busted..." if @dealer.total >21
-              break
-            end
-          end
-          puts "\n\n#{@player.name}: #{@player.total} -- #{@dealer.name}: #{@dealer.total}"
-          find_winner
-        end
-        @deck.add_cards_dealt_to_deck
+        player_turn
+        dealer_turn if @player.total <= 21
+        puts "\n\n#{@player.name}: #{@player.total} -- #{@dealer.name}: #{@dealer.total}"
+        find_winner if @player.total <= 21
       end
+      @deck.add_cards_dealt_to_deck
     end while continue?
   end
 end
