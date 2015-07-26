@@ -118,7 +118,7 @@ class Game
     player.cards.each {|value| puts "  #{value}"}
   end
 
-  def blackjack
+  def blackjack?
     if player.total == 21 || dealer.total == 21
       if dealer.total == 21
         show_cards(dealer)
